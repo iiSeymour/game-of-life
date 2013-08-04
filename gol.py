@@ -17,7 +17,7 @@ import curses
 import random
 import argparse
 from time import sleep
-
+from itertools import chain
 
 class gol(object):
 
@@ -125,26 +125,12 @@ class gol(object):
         Initialise the game with a predefined set
         up where the behaviour is deterministic
         """
+        blinker = [(4, 4), (4, 5),(4, 6)]
+        toad = [(9, 5), (9, 6),(9, 7), (10, 4), (10, 5),(10, 6)]
+        glider = [(4, 11), (5, 12), (6, 10), (6, 11), (6, 12)]
 
-        # Blinker
-        self.grid[(4, 4)] = 1
-        self.grid[(4, 5)] = 1
-        self.grid[(4, 6)] = 1
-
-        # Toad
-        self.grid[(9, 5)] = 1
-        self.grid[(9, 6)] = 1
-        self.grid[(9, 7)] = 1
-        self.grid[(10, 4)] = 1
-        self.grid[(10, 5)] = 1
-        self.grid[(10, 6)] = 1
-
-        # Glider
-        self.grid[(4, 11)] = 1
-        self.grid[(5, 12)] = 1
-        self.grid[(6, 10)] = 1
-        self.grid[(6, 11)] = 1
-        self.grid[(6, 12)] = 1
+        for cell in chain(blinker, toad, glider):
+            self.grid[cell] = 1
 
         # Draw initial generation
         self.DrawHUD()
