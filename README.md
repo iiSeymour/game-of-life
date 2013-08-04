@@ -11,3 +11,5 @@ A python implementation of Conway's gol using the curses module.
     -g G        The number of generations
     -r R        The refresh rate
     -n N        The number of initial points
+
+![alt tag](https://github.com/iiSeymour/game-of-life/blob/master/gol.png)
