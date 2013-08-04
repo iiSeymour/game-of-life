@@ -12,4 +12,9 @@ A python implementation of Conway's gol using the curses module.
     -r R        The refresh rate
     -n N        The number of initial points
 
-![alt tag](https://github.com/iiSeymour/game-of-life/blob/master/gol.png)
+Screenshot
+==========
+
+<p align="center">
+  <img src="https://raw.github.com/iiSeymour/game-of-life/master/gol.png " alt="Game Of Life"/>
+</p>
