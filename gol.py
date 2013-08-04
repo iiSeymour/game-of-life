@@ -45,6 +45,14 @@ class gol(object):
         curses.echo()
         curses.endwin()
 
+    def DrawHUD(self, n=0):
+        """
+        Draw information on population size and current generation
+        """
+        self.win.addstr(self.height - self.y_pad, self.x_pad, "Population: %i   " % len(self.grid))
+        self.win.addstr(self.height - self.x_pad, self.x_pad, "Generation: %s" % n)
+        return
+
     def DrawGrid(self):
         """
         Redraw the grid with the new generation
@@ -82,6 +90,13 @@ class gol(object):
                     count += 1
         return count
 
+    def Breed(self):
+        for i in range(1, self.generations + 1):
+            self.DrawHUD(i)
+            self.DrawGrid()
+            sleep(self.rate)
+        return
+
     def RandomStart(self, n):
         """
         Initialise the game with n random points
@@ -91,8 +106,7 @@ class gol(object):
             rx = random.randint(self.x_pad, self.width - self.x_pad)
             self.grid[(ry, rx)] = 1
 
-        self.win.addstr(self.height - 3, 2, "Grid: %i   " % len(self.grid))
-        self.win.addstr(self.height - 2, 2, "Generation: 0")
+        self.DrawHUD()
         self.DrawGrid()
         sleep(self.rate)
         return
@@ -123,34 +137,20 @@ class gol(object):
         self.grid[(6, 11)] = 1
         self.grid[(6, 12)] = 1
 
-        self.win.addstr(self.height - self.y_pad,
-                        self.x_pad, "Grid: %i   " % len(self.grid))
-        self.win.addstr(self.height - self.x_pad, self.x_pad, "Generation: 0")
+        self.DrawHUD()
         self.DrawGrid()
         sleep(self.rate)
-        return
-
-    def Breed(self):
-        for i in range(1, self.generations + 1):
-            self.win.addstr(self.height - 3, 2, "Grid: %i   " % len(self.grid))
-            self.win.addstr(self.height - 2, 2, "Generation: %s" % i)
-            self.DrawGrid()
-            sleep(self.rate)
         return
 
 
 def main(args):
     game = gol(args)
-#    game.TestStart()
     game.RandomStart(args.n)
     game.Breed()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-g", default=50, type=int,
-                        help="The number of generations")
-    parser.add_argument("-r", default=0.02, type=float,
-                        help="The refresh rate")
-    parser.add_argument("-n", default=300, type=int,
-                        help="The number of initial points")
+    parser.add_argument("-g", default=50, type=int, help="The number of generations")
+    parser.add_argument("-r", default=0.02, type=float, help="The refresh rate")
+    parser.add_argument("-n", default=300, type=int, help="The number of initial points")
     main(parser.parse_args())

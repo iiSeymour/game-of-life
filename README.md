@@ -1,9 +1,7 @@
 game-of-life
 ============
 
-Conway's Game Of Life
-
-A python implementation of Conway's gol using curses.
+A python implementation of Conway's gol using the curses modules.
 
     $ pyton gol.py -h
     usage: gol.py [-h] [-g G] [-r R] [-n N]
