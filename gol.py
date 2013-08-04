@@ -23,6 +23,8 @@ class gol(object):
 
     def __init__(self, args):
         self.screen = curses.initscr()
+        self.screen.keypad(1)
+        self.screen.nodelay(1)
         curses.start_color()
         curses.noecho()
         curses.cbreak()
@@ -33,11 +35,9 @@ class gol(object):
         self.y_pad = 3
         self.x_pad = 2
         self.char = "*"
-        self.generations = args.g
         self.rate = args.r
+        self.generations = args.g
         self.win = curses.newwin(self.height, self.width, self.y, self.x)
-        self.win.box()
-        self.win.addstr(1, 2, "Game of Life")
 
     def __del__(self):
         self.win.clear()
@@ -49,6 +49,8 @@ class gol(object):
         """
         Draw information on population size and current generation
         """
+        self.win.box()
+        self.win.addstr(1, 2, "Game of Life")
         self.win.addstr(self.height - self.y_pad, self.x_pad, "Population: %i   " % len(self.grid))
         self.win.addstr(self.height - self.x_pad, self.x_pad, "Generation: %s" % n)
         return
@@ -57,7 +59,7 @@ class gol(object):
         """
         Redraw the grid with the new generation
         """
-        cGrid = copy.deepcopy(self.grid)
+        grid_cp = copy.deepcopy(self.grid)
 
         for i in range(self.y_pad, self.height - self.y_pad):
             for j in range(self.x_pad, self.width - self.x_pad):
@@ -66,14 +68,13 @@ class gol(object):
                 if cell in self.grid.keys():
                     self.win.addch(i, j, self.char)
                     if n < 2 or n > 3:
-                        del cGrid[cell]
+                        del grid_cp[cell]
                 else:
                     self.win.addch(i, j, ' ')
                     if n == 3:
-                        cGrid[cell] = 1
+                        grid_cp[cell] = 1
 
-        self.grid = copy.deepcopy(cGrid)
-
+        self.grid = grid_cp
         self.win.refresh()
         return
 
@@ -91,7 +92,14 @@ class gol(object):
         return count
 
     def Breed(self):
+        """
+        main loop iterating through generations
+        population should be initialised before calling
+        Breed using RandomStart or TestStart
+        """
         for i in range(1, self.generations + 1):
+            if self.screen.getch() == ord('q'):
+                break
             self.DrawHUD(i)
             self.DrawGrid()
             sleep(self.rate)
@@ -106,6 +114,7 @@ class gol(object):
             rx = random.randint(self.x_pad, self.width - self.x_pad)
             self.grid[(ry, rx)] = 1
 
+        # Draw initial generation
         self.DrawHUD()
         self.DrawGrid()
         sleep(self.rate)
@@ -137,6 +146,7 @@ class gol(object):
         self.grid[(6, 11)] = 1
         self.grid[(6, 12)] = 1
 
+        # Draw initial generation
         self.DrawHUD()
         self.DrawGrid()
         sleep(self.rate)
