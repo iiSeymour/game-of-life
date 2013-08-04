@@ -30,16 +30,17 @@ class gol(object):
         curses.cbreak()
         curses.curs_set(0)
         self.grid = {}
-        self.x, self.y = (0, 0)
         self.height, self.width = self.screen.getmaxyx()
         self.y_pad = 3
         self.x_pad = 2
+        self.y_grid = self.height - self.y_pad
+        self.x_grid = self.width - self.x_pad
         self.char = "*"
         self.rate = args.r
         self.generations = args.g
         curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
-        self.win = curses.newwin(self.height, self.width, self.y, self.x)
+        self.win = curses.newwin(self.height, self.width, 0, 0)
 
     def __del__(self):
         self.win.clear()
@@ -61,22 +62,22 @@ class gol(object):
         """
         Redraw the grid with the new generation
         """
-        grid_cp = copy.deepcopy(self.grid)
+        grid_cp = copy.copy(self.grid)
+        active =  self.grid.keys()
 
-        for i in range(self.y_pad, self.height - self.y_pad):
-            for j in range(self.x_pad, self.width - self.x_pad):
-                cell = (i, j)
-                n = self.CountNeighbours(cell)
-                if cell in self.grid.keys():
-                    self.win.addch(i, j, self.char, curses.color_pair(self.grid[cell]))
-                    if n < 2 or n > 3:
-                        del grid_cp[cell]
-                    else:
-                        grid_cp[cell] = 1
+        for cell in product(xrange(self.y_pad, self.y_grid), xrange(self.x_pad, self.x_grid)):
+            n = self.CountNeighbours(cell)
+            x, y = cell
+            if cell in active:
+                self.win.addch(x, y, self.char, curses.color_pair(self.grid[cell]))
+                if n < 2 or n > 3:
+                    del grid_cp[cell]
                 else:
-                    self.win.addch(i, j, ' ')
-                    if n == 3:
-                        grid_cp[cell] = 2
+                    grid_cp[cell] = 1
+            else:
+                self.win.addch(x, y, ' ')
+                if n == 3:
+                    grid_cp[cell] = 2
 
         self.grid = grid_cp
         self.win.refresh()
@@ -90,7 +91,7 @@ class gol(object):
         x, y = cell
         active =  self.grid.keys()
 
-        for neighbour in product(range(x-1,x+2),range(y-1,y+2)):
+        for neighbour in product(xrange(x-1, x+2), xrange(y-1, y+2)):
             if neighbour in active and neighbour != cell:
                 count += 1
         return count
@@ -100,7 +101,7 @@ class gol(object):
         main loop iterating through generations, population should be
         initialised before calling Breed using RandomStart or TestStart
         """
-        for i in range(1, self.generations + 1):
+        for i in xrange(1, self.generations + 1):
             if self.screen.getch() == ord('q'):
                 break
             self.DrawHUD(i)
@@ -112,9 +113,9 @@ class gol(object):
         """
         Initialise the game with n random points
         """
-        for _ in range(0, n):
-            ry = random.randint(self.y_pad, self.height - self.y_pad)
-            rx = random.randint(self.x_pad, self.width - self.x_pad)
+        for _ in xrange(0, n):
+            ry = random.randint(self.y_pad, self.y_grid)
+            rx = random.randint(self.x_pad, self.x_grid)
             self.grid[(ry, rx)] = 1
 
         # Draw initial generation
