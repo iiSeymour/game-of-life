@@ -17,7 +17,7 @@ import curses
 import random
 import argparse
 from time import sleep
-from itertools import chain
+from itertools import chain, product
 
 class gol(object):
 
@@ -88,10 +88,11 @@ class gol(object):
         """
         count = 0
         x, y = cell
-        for i in range(x - 1, x + 2):
-            for j in range(y - 1, y + 2):
-                if (i, j) in self.grid.keys() and (i, j) != cell:
-                    count += 1
+        active =  self.grid.keys()
+
+        for neighbour in product(range(x-1,x+2),range(y-1,y+2)):
+            if neighbour in active and neighbour != cell:
+                count += 1
         return count
 
     def Breed(self):
