@@ -15,12 +15,13 @@ as if by reproduction.
 import copy
 import curses
 import random
+import argparse
 from time import sleep
 
 
-class gol:
+class gol(object):
 
-    def __init__(self):
+    def __init__(self, args):
         self.screen = curses.initscr()
         curses.start_color()
         curses.noecho()
@@ -30,8 +31,8 @@ class gol:
         self.height, self.width = self.screen.getmaxyx()
         self.padding = 3
         self.char = "*"
-        self.generations = 50
-        self.rate = 0.02
+        self.generations = args.g
+        self.rate = args.r
         self.win = curses.newwin(self.height, self.width, self.y, self.x)
         self.win.box()
         self.win.addstr(1 ,2, "Game of Life")
@@ -126,11 +127,18 @@ class gol:
             sleep(self.rate)
         return
 
-def main():
-    game = gol()
-    game.RandomStart(300)
+def main(args):
+    game = gol(args)
 #    game.TestStart()
+    game.RandomStart(args.n)
     game.Breed()
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-g", default=50, type=int,
+                        help = "The number of generations")
+    parser.add_argument("-r", default=0.02, type=float,
+                        help = "The refresh rate")
+    parser.add_argument("-n", default=300, type=int,
+                        help = "The number of initial points")
+    main(parser.parse_args())
