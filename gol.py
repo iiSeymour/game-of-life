@@ -37,6 +37,8 @@ class gol(object):
         self.char = "*"
         self.rate = args.r
         self.generations = args.g
+        curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
         self.win = curses.newwin(self.height, self.width, self.y, self.x)
 
     def __del__(self):
@@ -66,13 +68,15 @@ class gol(object):
                 cell = (i, j)
                 n = self.CountNeighbours(cell)
                 if cell in self.grid.keys():
-                    self.win.addch(i, j, self.char)
+                    self.win.addch(i, j, self.char, curses.color_pair(self.grid[cell]))
                     if n < 2 or n > 3:
                         del grid_cp[cell]
+                    else:
+                        grid_cp[cell] = 1
                 else:
                     self.win.addch(i, j, ' ')
                     if n == 3:
-                        grid_cp[cell] = 1
+                        grid_cp[cell] = 2
 
         self.grid = grid_cp
         self.win.refresh()
