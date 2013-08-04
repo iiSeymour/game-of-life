@@ -80,8 +80,7 @@ class gol(object):
 
     def CountNeighbours(self, cell):
         """
-        Return the number active neighbours
-        within one positions away from cell
+        Return the number active neighbours within one positions away from cell
         """
         count = 0
         x, y = cell
@@ -93,9 +92,8 @@ class gol(object):
 
     def Breed(self):
         """
-        main loop iterating through generations
-        population should be initialised before calling
-        Breed using RandomStart or TestStart
+        main loop iterating through generations, population should be
+        initialised before calling Breed using RandomStart or TestStart
         """
         for i in range(1, self.generations + 1):
             if self.screen.getch() == ord('q'):
@@ -122,8 +120,7 @@ class gol(object):
 
     def TestStart(self):
         """
-        Initialise the game with a predefined set
-        up where the behaviour is deterministic
+        Initialise the game with a predefined set up where the behaviour is deterministic
         """
         blinker = [(4, 4), (4, 5),(4, 6)]
         toad = [(9, 5), (9, 6),(9, 7), (10, 4), (10, 5),(10, 6)]
