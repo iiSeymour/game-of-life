@@ -8,6 +8,7 @@ A python implementation of Conway's gol using the curses module.
 
     optional arguments:
     -h, --help  show this help message and exit
+    -f          Display fullscreen grid
     -g G        The number of generations
     -r R        The refresh rate
     -n N        The number of initial points
