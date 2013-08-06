@@ -1,15 +1,11 @@
 """
-Any live cell with fewer than two live neighbours dies,
-as if caused by under-population.
+Any live cell with fewer than two live neighbours dies, as if caused by under-population.
 
-Any live cell with two or three live neighbours lives
-on to the next generation.
+Any live cell with two or three live neighbours lives on to the next generation.
 
-Any live cell with more than three live neighbours dies,
-as if by overcrowding.
+Any live cell with more than three live neighbours dies, as if by overcrowding.
 
-Any dead cell with exactly three live neighbours becomes a live cell,
-as if by reproduction.
+Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 """
 
 import copy
@@ -102,7 +98,7 @@ class gol(object):
         x, y = cell
         active = self.grid.keys()
 
-        for neighbour in product(xrange(x - 1, x + 2), xrange(y - 1, y + 2)):
+        for neighbour in product([x-1, x, x+1], [y-1, y, y+1]):
             if neighbour in active and neighbour != cell:
                 count += 1
         return count
@@ -113,22 +109,21 @@ class gol(object):
         initialised before calling Breed using RandomStart or TestStart
         """
         for i in xrange(1, self.generations + 1):
-            if self.screen.getch() == ord('q'):
-                break
             self.DrawHUD(i)
             self.DrawGrid()
             sleep(self.rate)
+            if self.screen.getch() == ord('q'):
+                break
         return
 
     def RandomStart(self, n):
         """
         Initialise the game with n random points
         """
-        for _ in xrange(0, n):
+        for _ in xrange(n):
             ry = random.randint(self.y_pad, self.y_grid)
             rx = random.randint(self.x_pad, self.x_grid)
             self.grid[(ry, rx)] = 1
-
         return
 
     def TestStart(self):
@@ -142,7 +137,6 @@ class gol(object):
 
         for cell in chain(blinker, toad, glider, r_pentomino):
             self.grid[cell] = 1
-
         return
 
 
