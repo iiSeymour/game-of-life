@@ -58,10 +58,11 @@ class gol(object):
         """
         Draw information on population size and current generation
         """
-        self.win.box()
         self.win.addstr(1, 2, "Game of Life")
+        self.win.move(self.height - 2, self.x_pad)
         self.win.clrtoeol()
-        self.win.addstr(self.height - 2, self.x_pad, "Population: %i   " % len(self.grid))
+        self.win.box()
+        self.win.addstr(self.height - 2, self.x_pad, "Population: %i" % len(self.grid))
         self.win.addstr(self.height - 3, self.x_pad, "Generation: %s" % n)
         return
 
@@ -164,8 +165,7 @@ class gol(object):
 
 def main(args):
     game = gol(args)
-    #game.RandomStart(args.n)
-    game.TestStart()
+    game.RandomStart(args.n)
     game.Breed()
 
 if __name__ == "__main__":
