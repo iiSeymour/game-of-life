@@ -34,10 +34,10 @@ class gol(object):
         else:
             self.height = min(24, max_h)
             self.width = min(80, max_w)
-        self.y_pad = 3
+        self.y_pad = 2
         self.x_pad = 2
-        self.y_grid = self.height - self.y_pad
-        self.x_grid = self.width - self.x_pad
+        self.y_grid = self.height - self.y_pad - 2
+        self.x_grid = self.width - self.x_pad - 1
         self.char = ['.', '-', '*', '#']
         self.rate = args.r
         self.generations = args.g
@@ -54,40 +54,61 @@ class gol(object):
         curses.echo()
         curses.endwin()
 
-    def DrawHUD(self, n=0):
+    def DrawHUD(self, n):
         """
         Draw information on population size and current generation
         """
         self.win.box()
         self.win.addstr(1, 2, "Game of Life")
-        self.win.addstr(self.height - self.y_pad, self.x_pad, "Population: %i   " % len(self.grid))
-        self.win.addstr(self.height - self.x_pad, self.x_pad, "Generation: %s" % n)
+        self.win.clrtoeol()
+        self.win.addstr(self.height - 2, self.x_pad, "Population: %i   " % len(self.grid))
+        self.win.addstr(self.height - 3, self.x_pad, "Generation: %s" % n)
         return
 
     def DrawGrid(self):
         """
         Redraw the grid with the new generation
         """
+        for cell in self.grid.keys():
+            x, y = cell
+            self.win.addch(x, y, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
+
+        self.win.refresh()
+        return
+
+    def inGrid(self, cell):
+        """
+        Are we within the grid boundary
+        """
+        y, x = cell
+
+        if (x < self.x_grid and x > self.x_pad and y < self.y_grid and y > self.y_pad):
+            return True
+        return False
+
+    def NextGen(self):
+        """
+        Decide the fate of the cells
+        """
         grid_cp = copy.copy(self.grid)
         active = self.grid.keys()
 
-        for cell in product(xrange(self.y_pad, self.y_grid), xrange(self.x_pad, self.x_grid)):
-            n = self.CountNeighbours(cell)
+        for cell in active:
             x, y = cell
-            if cell in active:
-                self.win.addch(
-                    x, y, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
-                if n < 2 or n > 3:
-                    del grid_cp[cell]
-                else:
-                    grid_cp[cell] = min(grid_cp[cell] + 1, self.color_max)
-            else:
+            n = self.CountNeighbours(cell)
+
+            if n < 2 or n > 3:
+                del grid_cp[cell]
                 self.win.addch(x, y, ' ')
-                if n == 3:
-                    grid_cp[cell] = 1
+            else:
+                grid_cp[cell] = min(self.grid[cell] + 1, self.color_max)
+
+            for neighbour in product([x - 1, x, x + 1], [y - 1, y, y + 1]):
+                if neighbour not in active and self.inGrid(neighbour):
+                    if self.CountNeighbours(neighbour) == 3:
+                        grid_cp[neighbour] = 1
 
         self.grid = grid_cp
-        self.win.refresh()
         return
 
     def CountNeighbours(self, cell):
@@ -108,10 +129,11 @@ class gol(object):
         main loop iterating through generations, population should be
         initialised before calling Breed using RandomStart or TestStart
         """
-        for i in xrange(1, self.generations + 1):
+        for i in xrange(self.generations + 1):
             self.DrawHUD(i)
             self.DrawGrid()
             sleep(self.rate)
+            self.NextGen()
             if self.screen.getch() == ord('q'):
                 break
         return
@@ -142,7 +164,8 @@ class gol(object):
 
 def main(args):
     game = gol(args)
-    game.RandomStart(args.n)
+    #game.RandomStart(args.n)
+    game.TestStart()
     game.Breed()
 
 if __name__ == "__main__":
