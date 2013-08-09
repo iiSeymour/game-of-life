@@ -27,6 +27,7 @@ class gol(object):
         curses.cbreak()
         curses.curs_set(0)
         self.grid = {}
+        self.active = []
         max_h, max_w = self.screen.getmaxyx()
         if args.f:
             self.height = max_h
@@ -92,9 +93,9 @@ class gol(object):
         Decide the fate of the cells
         """
         grid_cp = copy.copy(self.grid)
-        active = self.grid.keys()
+        self.active = self.grid.keys()
 
-        for cell in active:
+        for cell in self.active:
             x, y = cell
             n = self.CountNeighbours(cell)
 
@@ -105,7 +106,7 @@ class gol(object):
                 grid_cp[cell] = min(self.grid[cell] + 1, self.color_max)
 
             for neighbour in product([x - 1, x, x + 1], [y - 1, y, y + 1]):
-                if neighbour not in active and self.inGrid(neighbour):
+                if neighbour not in self.active and self.inGrid(neighbour):
                     if self.CountNeighbours(neighbour) == 3:
                         grid_cp[neighbour] = 1
 
@@ -118,10 +119,9 @@ class gol(object):
         """
         count = 0
         x, y = cell
-        active = self.grid.keys()
 
         for neighbour in product([x-1, x, x+1], [y-1, y, y+1]):
-            if neighbour in active and neighbour != cell:
+            if neighbour in self.active and neighbour != cell:
                 count += 1
         return count
 
