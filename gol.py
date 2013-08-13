@@ -21,11 +21,7 @@ class gol(object):
     def __init__(self, args):
         self.screen = curses.initscr()
         self.screen.keypad(1)
-        self.screen.nodelay(1)
-        curses.start_color()
-        curses.noecho()
-        curses.cbreak()
-        curses.curs_set(0)
+        self.initCurses()
         self.grid = {}
         self.active = []
         max_h, max_w = self.screen.getmaxyx()
@@ -40,14 +36,16 @@ class gol(object):
         self.y_grid = self.height - self.y_pad - 2
         self.x_grid = self.width - self.x_pad - 1
         self.char = ['.', '-', '*', '#']
+        self.initsize = args.n
         self.rate = args.r
-        self.generations = args.g
-        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_CYAN, curses.COLOR_BLACK)
-        curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        self.max_gen = args.g
+        self.current_gen = 0
         self.color_max = 4
         self.win = curses.newwin(self.height, self.width, 0, 0)
+        self.g = curses.newwin(self.y_grid, self.x_grid, 1, 1)
+        self.win.nodelay(1)
+        self.Splash()
+        self.DrawHUD()
 
     def __del__(self):
         self.win.clear()
@@ -55,16 +53,50 @@ class gol(object):
         curses.echo()
         curses.endwin()
 
-    def DrawHUD(self, n):
+    def initCurses(self):
+        """
+        Set up screen properties
+        """
+        curses.noecho()
+        curses.cbreak()
+        curses.curs_set(0)
+        curses.start_color()
+        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        return
+
+    def Splash(self):
+        """
+        Draw splash screen
+        """
+
+        splash = r"""
+          _____                         ____   __   _      _  __
+         / ____|                       / __ \ / _| | |    (_)/ _|
+        | |  __  __ _ _ __ ___   ___  | |  | | |_  | |     _| |_ ___
+        | | |_ |/ _` | '_ ` _ \ / _ \ | |  | |  _| | |    | |  _/ _ \
+        | |__| | (_| | | | | | |  __/ | |__| | |   | |____| | ||  __/
+         \_____|\__,_|_| |_| |_|\___|  \____/|_|   |______|_|_| \___|
+        """
+
+
+        self.win.addstr(self.height/2 - 8, self.width/2, splash)
+
+        return
+
+    def DrawHUD(self):
         """
         Draw information on population size and current generation
         """
-        self.win.addstr(1, 2, "Game of Life")
         self.win.move(self.height - 2, self.x_pad)
         self.win.clrtoeol()
         self.win.box()
         self.win.addstr(self.height - 2, self.x_pad, "Population: %i" % len(self.grid))
-        self.win.addstr(self.height - 3, self.x_pad, "Generation: %s" % n)
+        self.win.addstr(self.height - 3, self.x_pad, "Generation: %s" % self.current_gen)
+        self.win.addstr(self.height - 3, self.x_grid - 19, "s: start   p: pause")
+        self.win.addstr(self.height - 2, self.x_grid - 19, "r: restart q: quit")
         return
 
     def DrawGrid(self):
@@ -92,6 +124,7 @@ class gol(object):
         """
         Decide the fate of the cells
         """
+        self.current_gen += 1
         grid_cp = copy.copy(self.grid)
         self.active = self.grid.keys()
 
@@ -125,25 +158,14 @@ class gol(object):
                 count += 1
         return count
 
-    def Breed(self):
-        """
-        main loop iterating through generations, population should be
-        initialised before calling Breed using RandomStart or TestStart
-        """
-        for i in xrange(self.generations + 1):
-            self.DrawHUD(i)
-            self.DrawGrid()
-            sleep(self.rate)
-            self.NextGen()
-            if self.screen.getch() == ord('q'):
-                break
-        return
-
-    def RandomStart(self, n):
+    def InitRandom(self):
         """
         Initialise the game with n random points
         """
-        for _ in xrange(n):
+        self.grid = {}
+        self.active = {}
+
+        for _ in xrange(self.initsize):
             ry = random.randint(self.y_pad, self.y_grid)
             rx = random.randint(self.x_pad, self.x_grid)
             self.grid[(ry, rx)] = 1
@@ -162,20 +184,79 @@ class gol(object):
             self.grid[cell] = 1
         return
 
+    def Start(self):
+        """
+        Game logic
+        """
+
+        # Initial screen
+        self.InitRandom()
+        self.win.clear()
+
+        while True:
+            self.DrawHUD()
+            self.DrawGrid()
+            sleep(self.rate)
+            self.NextGen()
+            key = self.win.getch()
+            if key == ord('q'):
+                return
+            if key == ord('r'):
+                self.Restart()
+            if key == ord('p'):
+                PAUSE = True
+                while PAUSE:
+                    key = self.win.getch()
+                    if key == ord('q'):
+                        return
+                    if key == ord('r'):
+                        self.Restart()
+                        PAUSE = False
+                    if key in [ord('s'),ord('p')]:
+                        PAUSE = False
+        self.End()
+        return
+
+    def Restart(self):
+        """
+        Restart the game from a new generation 0
+        """
+        self.InitRandom()
+        self.win.clear()
+        self.current_gen = 0
+        return
+
+    def End(self):
+        """
+        Game Finished - Restart or Quit?
+        """
+        while True:
+            key = self.win.getch()
+            if key == ord('q'):
+                return
+            if key in [ord('s'),ord('r')]:
+                self.Start()
+        return
+
 
 def main(args):
     game = gol(args)
-    game.RandomStart(args.n)
-    game.Breed()
+    while True:
+        key = game.win.getch()
+        if key in [ord('s'),ord('r')]:
+            break
+        if key == ord('q'):
+            return
+    game.Start()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", action="store_true",
                         default=False, help="Display fullscreen grid")
     parser.add_argument(
-        "-g", default=50, type=int, help="The number of generations")
+        "-g", default=50, type=int, help="Set maximum number of generations")
     parser.add_argument(
-        "-r", default=0.02, type=float, help="The refresh rate")
+        "-r", default=0.02, type=float, help="Set the refresh rate")
     parser.add_argument(
-        "-n", default=300, type=int, help="The number of initial points")
+        "-n", default=300, type=int, help="Set the number of initial points")
     main(parser.parse_args())
