@@ -41,6 +41,7 @@ class gol(object):
         self.max_gen = args.g
         self.current_gen = 0
         self.color_max = 4
+        self.state = 'initial'
         self.win = curses.newwin(self.height, self.width, 0, 0)
         self.g = curses.newwin(self.y_grid, self.x_grid, 1, 1)
         self.win.nodelay(1)
@@ -193,27 +194,31 @@ class gol(object):
         self.InitRandom()
         self.win.clear()
 
-        while True:
+        while self.state == 'run':
             self.DrawHUD()
             self.DrawGrid()
             sleep(self.rate)
             self.NextGen()
+
             key = self.win.getch()
             if key == ord('q'):
                 return
             if key == ord('r'):
                 self.Restart()
-            if key == ord('p'):
-                PAUSE = True
-                while PAUSE:
+            if key in [ord('p'), ord('s')]:
+                self.state = 'pause'
+                while self.state == 'pause':
                     key = self.win.getch()
                     if key == ord('q'):
                         return
                     if key == ord('r'):
+                        self.state = 'run'
                         self.Restart()
-                        PAUSE = False
                     if key in [ord('s'),ord('p')]:
-                        PAUSE = False
+                        self.state = 'run'
+
+        # drop here when population stable over 2 generations
+        self.state = 'stop'
         self.End()
         return
 
@@ -230,24 +235,25 @@ class gol(object):
         """
         Game Finished - Restart or Quit?
         """
-        while True:
+        while self.state == 'stop':
             key = self.win.getch()
             if key == ord('q'):
                 return
             if key in [ord('s'),ord('r')]:
+                self.state = 'run'
                 self.Start()
         return
 
-
 def main(args):
     game = gol(args)
-    while True:
+    while game.state == 'initial':
         key = game.win.getch()
         if key in [ord('s'),ord('r')]:
-            break
+            game.state = 'run'
         if key == ord('q'):
             return
     game.Start()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
