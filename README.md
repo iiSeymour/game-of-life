@@ -9,7 +9,6 @@ A python implementation of [Conway's Game of Life](http://en.wikipedia.org/wiki/
     optional arguments:
     -h, --help  show this help message and exit
     -f          Display fullscreen grid
-    -g G        The number of generations
     -r R        The refresh rate
     -n N        The number of initial points
 
@@ -17,5 +16,5 @@ Screenshot
 ==========
 
 <p align="center">
-  <img src="https://raw.github.com/iiSeymour/game-of-life/master/gol.png " alt="Game Of Life"/>
+<img src="https://raw.github.com/iiSeymour/game-of-life/master/conway/gol.png"" alt="Game Of Life"/>
 </p>
