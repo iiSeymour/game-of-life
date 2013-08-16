@@ -33,18 +33,23 @@ class gol(object):
         else:
             self.height = min(24, max_h)
             self.width = min(80, max_w)
-        self.y_pad = 1
-        self.x_pad = 1
-        self.hud_pad = 2
+        if args.x:
+            self.y_pad = 0
+            self.x_pad = 0
+            self.hud_pad = 0
+            self.HUD = False
+        else:
+            self.y_pad = 1
+            self.x_pad = 1
+            self.hud_pad = 2
+            self.HUD = True
         self.y_grid = self.height - self.y_pad - self.hud_pad
         self.x_grid = self.width - self.x_pad - 1
         self.char = ['.', '-', '*', '#']
-
         if args.n:
             self.initsize = args.n
         else:
             self.initsize = int(self.x_grid * self.y_grid * 0.15)
-
         self.rate = args.r
         self.current_gen = 0
         self.color_max = 4
@@ -96,6 +101,8 @@ class gol(object):
         """
         Draw information on population size and current generation
         """
+        if not self.HUD:
+            return
         self.win.move(self.height - 2, self.x_pad)
         self.win.clrtoeol()
         self.win.box()
@@ -198,7 +205,6 @@ class gol(object):
         Game logic
         """
 
-        # Initial screen
         if __TESTING__:
             self.InitTest()
         else:
