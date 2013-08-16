@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+from conway.gol import gol
+
+def main(args):
+    game = gol(args)
+    while game.state == 'initial':
+        key = game.win.getch()
+        if key in [ord('s'),ord('r')]:
+            game.state = 'run'
+        if key == ord('q'):
+            return
+    game.Start()
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", action="store_true", default=False, help="Display fullscreen grid")
+    parser.add_argument("-r", default=0.02, type=float, help="Set the refresh rate")
+    parser.add_argument("-n", type=int, help="Set the number of initial points")
+    main(parser.parse_args())

@@ -8,10 +8,12 @@ Any live cell with more than three live neighbours dies, as if by overcrowding.
 Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 """
 
+__TESTING__ = False
+
+import os
 import copy
 import curses
 import random
-import argparse
 from time import sleep
 from itertools import chain, product
 
@@ -31,14 +33,19 @@ class gol(object):
         else:
             self.height = min(24, max_h)
             self.width = min(80, max_w)
-        self.y_pad = 2
-        self.x_pad = 2
-        self.y_grid = self.height - self.y_pad - 2
+        self.y_pad = 1
+        self.x_pad = 1
+        self.hud_pad = 2
+        self.y_grid = self.height - self.y_pad - self.hud_pad
         self.x_grid = self.width - self.x_pad - 1
         self.char = ['.', '-', '*', '#']
-        self.initsize = args.n
+
+        if args.n:
+            self.initsize = args.n
+        else:
+            self.initsize = int(self.x_grid * self.y_grid * 0.15)
+
         self.rate = args.r
-        self.max_gen = args.g
         self.current_gen = 0
         self.color_max = 4
         self.state = 'initial'
@@ -72,18 +79,16 @@ class gol(object):
         """
         Draw splash screen
         """
+        dirname = os.path.split(os.path.abspath(__file__))[0]
+        splash = open(os.path.join(dirname,"splash"), "r").readlines()
 
-        splash = r"""
-          _____                         ____   __   _      _  __
-         / ____|                       / __ \ / _| | |    (_)/ _|
-        | |  __  __ _ _ __ ___   ___  | |  | | |_  | |     _| |_ ___
-        | | |_ |/ _` | '_ ` _ \ / _ \ | |  | |  _| | |    | |  _/ _ \
-        | |__| | (_| | | | | | |  __/ | |__| | |   | |____| | ||  __/
-         \_____|\__,_|_| |_| |_|\___|  \____/|_|   |______|_|_| \___|
-        """
+        l_splash = len(max(splash, key=len))
+        y_splash = int(self.y_grid/2) - len(splash)
+        x_splash = int(self.x_grid/2) - int(l_splash/2)
 
-
-        self.win.addstr(self.height/2 - 8, self.width/2, splash)
+        if self.x_grid > l_splash:
+            for i, line in enumerate(splash):
+                self.win.addstr(y_splash + i, x_splash, line)
 
         return
 
@@ -117,7 +122,7 @@ class gol(object):
         """
         y, x = cell
 
-        if (x < self.x_grid and x > self.x_pad and y < self.y_grid and y > self.y_pad):
+        if (x <= self.x_grid and x >= self.x_pad and y < self.y_grid and y >= self.y_pad):
             return True
         return False
 
@@ -154,7 +159,7 @@ class gol(object):
         count = 0
         x, y = cell
 
-        for neighbour in product([x-1, x, x+1], [y-1, y, y+1]):
+        for neighbour in product([x - 1, x, x + 1], [y - 1, y, y + 1]):
             if neighbour in self.active and neighbour != cell:
                 count += 1
         return count
@@ -167,19 +172,22 @@ class gol(object):
         self.active = {}
 
         for _ in xrange(self.initsize):
-            ry = random.randint(self.y_pad, self.y_grid)
+            ry = random.randint(self.y_pad, self.y_grid - 1)
             rx = random.randint(self.x_pad, self.x_grid)
             self.grid[(ry, rx)] = 1
         return
 
-    def TestStart(self):
+    def InitTest(self):
         """
         Initialise the game with a predefined set up where the behaviour is deterministic
         """
         blinker = [(4, 4), (4, 5), (4, 6)]
         toad = [(9, 5), (9, 6), (9, 7), (10, 4), (10, 5), (10, 6)]
         glider = [(4, 11), (5, 12), (6, 10), (6, 11), (6, 12)]
-        r_pentomino = [(5, 40), (4, 41), (5, 41), (6, 41), (4, 42)]
+        r_pentomino = [(10, 60), (9, 61), (10, 61), (11, 61), (9, 62)]
+
+        self.grid = {}
+        self.active = {}
 
         for cell in chain(blinker, toad, glider, r_pentomino):
             self.grid[cell] = 1
@@ -191,7 +199,10 @@ class gol(object):
         """
 
         # Initial screen
-        self.InitRandom()
+        if __TESTING__:
+            self.InitTest()
+        else:
+            self.InitRandom()
         self.win.clear()
 
         while self.state == 'run':
@@ -226,7 +237,11 @@ class gol(object):
         """
         Restart the game from a new generation 0
         """
-        self.InitRandom()
+
+        if __TESTING__:
+            self.InitTest()
+        else:
+            self.InitRandom()
         self.win.clear()
         self.current_gen = 0
         return
@@ -243,26 +258,3 @@ class gol(object):
                 self.state = 'run'
                 self.Start()
         return
-
-def main(args):
-    game = gol(args)
-    while game.state == 'initial':
-        key = game.win.getch()
-        if key in [ord('s'),ord('r')]:
-            game.state = 'run'
-        if key == ord('q'):
-            return
-    game.Start()
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-f", action="store_true",
-                        default=False, help="Display fullscreen grid")
-    parser.add_argument(
-        "-g", default=50, type=int, help="Set maximum number of generations")
-    parser.add_argument(
-        "-r", default=0.02, type=float, help="Set the refresh rate")
-    parser.add_argument(
-        "-n", default=300, type=int, help="Set the number of initial points")
-    main(parser.parse_args())
