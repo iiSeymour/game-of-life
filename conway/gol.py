@@ -8,7 +8,7 @@ Any live cell with more than three live neighbours dies, as if by overcrowding.
 Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 """
 
-__TESTING__ = False
+__TESTING__ = True
 
 import os
 import copy
@@ -16,7 +16,6 @@ import curses
 import random
 from time import sleep
 from itertools import chain, product
-
 
 class gol(object):
 
@@ -43,7 +42,8 @@ class gol(object):
             self.x_pad = 1
             self.hud_pad = 2
             self.HUD = True
-        self.y_grid = self.height - self.y_pad - self.hud_pad
+
+        self.y_grid = self.height - self.y_pad - self.hud_pad - 1
         self.x_grid = self.width - self.x_pad - 1
         self.char = ['.', '-', '*', '#']
         if args.n:
@@ -55,7 +55,6 @@ class gol(object):
         self.color_max = 4
         self.state = 'initial'
         self.win = curses.newwin(self.height, self.width, 0, 0)
-        self.g = curses.newwin(self.y_grid, self.x_grid, 1, 1)
         self.win.nodelay(1)
         self.Splash()
         self.DrawHUD()
@@ -117,8 +116,8 @@ class gol(object):
         Redraw the grid with the new generation
         """
         for cell in self.grid.keys():
-            x, y = cell
-            self.win.addch(x, y, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
+            y, x = cell
+            self.win.addch(y, x, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
 
         self.win.refresh()
         return
@@ -129,7 +128,7 @@ class gol(object):
         """
         y, x = cell
 
-        if (x <= self.x_grid and x >= self.x_pad and y < self.y_grid and y >= self.y_pad):
+        if (x < self.x_grid and x >= self.x_pad and y <= self.y_grid and y >= self.y_pad):
             return True
         return False
 
@@ -142,16 +141,16 @@ class gol(object):
         self.active = self.grid.keys()
 
         for cell in self.active:
-            x, y = cell
+            y, x = cell
             n = self.CountNeighbours(cell)
 
             if n < 2 or n > 3:
                 del grid_cp[cell]
-                self.win.addch(x, y, ' ')
+                self.win.addch(y, x, ' ')
             else:
                 grid_cp[cell] = min(self.grid[cell] + 1, self.color_max)
 
-            for neighbour in product([x - 1, x, x + 1], [y - 1, y, y + 1]):
+            for neighbour in product([y - 1, y, y + 1], [x - 1, x, x + 1]):
                 if neighbour not in self.active and self.inGrid(neighbour):
                     if self.CountNeighbours(neighbour) == 3:
                         grid_cp[neighbour] = 1
@@ -164,9 +163,9 @@ class gol(object):
         Return the number active neighbours within one positions away from cell
         """
         count = 0
-        x, y = cell
+        y, x = cell
 
-        for neighbour in product([x - 1, x, x + 1], [y - 1, y, y + 1]):
+        for neighbour in product([y - 1, y, y + 1], [x - 1, x, x + 1]):
             if neighbour in self.active and neighbour != cell:
                 count += 1
         return count
@@ -204,7 +203,6 @@ class gol(object):
         """
         Game logic
         """
-
         if __TESTING__:
             self.InitTest()
         else:
@@ -212,11 +210,12 @@ class gol(object):
         self.win.clear()
 
         while self.state == 'run':
+            if __TESTING__ and self.current_gen == 100:
+                return
             self.DrawHUD()
             self.DrawGrid()
             sleep(self.rate)
             self.NextGen()
-
             key = self.win.getch()
             if key == ord('q'):
                 return
@@ -243,7 +242,6 @@ class gol(object):
         """
         Restart the game from a new generation 0
         """
-
         if __TESTING__:
             self.InitTest()
         else:
