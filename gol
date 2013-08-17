@@ -11,6 +11,7 @@ def main(args):
         if key == ord('q'):
             return
     game.Start()
+    return
 
 if __name__ == "__main__":
     import argparse

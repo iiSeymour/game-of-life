@@ -8,7 +8,7 @@ Any live cell with more than three live neighbours dies, as if by overcrowding.
 Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 """
 
-__TESTING__ = True
+__TESTING__ = False
 
 import os
 import copy
@@ -42,22 +42,22 @@ class gol(object):
             self.x_pad = 1
             self.hud_pad = 2
             self.HUD = True
-
-        self.y_grid = self.height - self.y_pad - self.hud_pad - 1
-        self.x_grid = self.width - self.x_pad - 1
-        self.char = ['.', '-', '*', '#']
+        self.y_grid = self.height - self.y_pad - self.hud_pad
+        self.x_grid = self.width - self.x_pad
+        self.char = ['-', '+', '%', 'o']
         if args.n:
             self.initsize = args.n
         else:
             self.initsize = int(self.x_grid * self.y_grid * 0.15)
         self.rate = args.r
         self.current_gen = 0
+        self.change_gen = [1, 2, 3]
         self.color_max = 4
         self.state = 'initial'
         self.win = curses.newwin(self.height, self.width, 0, 0)
         self.win.nodelay(1)
         self.Splash()
-        self.DrawHUD()
+        if self.HUD: self.DrawHUD()
 
     def __del__(self):
         self.win.clear()
@@ -77,6 +77,8 @@ class gol(object):
         curses.init_pair(2, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_CYAN, curses.COLOR_BLACK)
         curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(6, curses.COLOR_GREEN, curses.COLOR_BLACK)
         return
 
     def Splash(self):
@@ -93,22 +95,19 @@ class gol(object):
         if self.x_grid > l_splash:
             for i, line in enumerate(splash):
                 self.win.addstr(y_splash + i, x_splash, line)
-
         return
 
     def DrawHUD(self):
         """
         Draw information on population size and current generation
         """
-        if not self.HUD:
-            return
         self.win.move(self.height - 2, self.x_pad)
         self.win.clrtoeol()
         self.win.box()
         self.win.addstr(self.height - 2, self.x_pad, "Population: %i" % len(self.grid))
         self.win.addstr(self.height - 3, self.x_pad, "Generation: %s" % self.current_gen)
-        self.win.addstr(self.height - 3, self.x_grid - 19, "s: start   p: pause")
-        self.win.addstr(self.height - 2, self.x_grid - 19, "r: restart q: quit")
+        self.win.addstr(self.height - 3, self.x_grid - 21, "s: start    p: pause")
+        self.win.addstr(self.height - 2, self.x_grid - 21, "r: restart  q: quit")
         return
 
     def DrawGrid(self):
@@ -127,8 +126,7 @@ class gol(object):
         Are we within the grid boundary
         """
         y, x = cell
-
-        if (x < self.x_grid and x >= self.x_pad and y <= self.y_grid and y >= self.y_pad):
+        if (x < self.x_grid and x >= self.x_pad and y < self.y_grid and y >= self.y_pad):
             return True
         return False
 
@@ -137,6 +135,7 @@ class gol(object):
         Decide the fate of the cells
         """
         self.current_gen += 1
+        self.change_gen[self.current_gen % 3] = copy.copy(self.grid)
         grid_cp = copy.copy(self.grid)
         self.active = self.grid.keys()
 
@@ -179,7 +178,7 @@ class gol(object):
 
         for _ in xrange(self.initsize):
             ry = random.randint(self.y_pad, self.y_grid - 1)
-            rx = random.randint(self.x_pad, self.x_grid)
+            rx = random.randint(self.x_pad, self.x_grid - 1)
             self.grid[(ry, rx)] = 1
         return
 
@@ -203,19 +202,24 @@ class gol(object):
         """
         Game logic
         """
-        if __TESTING__:
-            self.InitTest()
-        else:
-            self.InitRandom()
+        if __TESTING__: self.InitTest()
+        else: self.InitRandom()
         self.win.clear()
 
         while self.state == 'run':
             if __TESTING__ and self.current_gen == 100:
-                return
-            self.DrawHUD()
+                self.state = 'stop'
+                break
+            if self.HUD: self.DrawHUD()
             self.DrawGrid()
-            sleep(self.rate)
             self.NextGen()
+            sleep(self.rate)
+            # Have life evolved over 2 generations
+            # Better stopping condition needed
+            if self.change_gen[0] == self.change_gen[2]:
+                self.state = 'stop'
+                break
+            # Handle key presses
             key = self.win.getch()
             if key == ord('q'):
                 return
@@ -225,16 +229,12 @@ class gol(object):
                 self.state = 'pause'
                 while self.state == 'pause':
                     key = self.win.getch()
-                    if key == ord('q'):
-                        return
+                    if key == ord('q'): return
                     if key == ord('r'):
                         self.state = 'run'
                         self.Restart()
-                    if key in [ord('s'),ord('p')]:
+                    if key in [ord('s'), ord('p')]:
                         self.state = 'run'
-
-        # drop here when population stable over 2 generations
-        self.state = 'stop'
         self.End()
         return
 
@@ -242,10 +242,8 @@ class gol(object):
         """
         Restart the game from a new generation 0
         """
-        if __TESTING__:
-            self.InitTest()
-        else:
-            self.InitRandom()
+        if __TESTING__: self.InitTest()
+        else: self.InitRandom()
         self.win.clear()
         self.current_gen = 0
         return
@@ -254,11 +252,14 @@ class gol(object):
         """
         Game Finished - Restart or Quit?
         """
+        self.win.move(self.height - 2, self.x_pad)
+        self.win.addstr(self.height - 2, self.x_grid/2 - 4, "GAMEOVER",curses.color_pair(5))
+        self.win.addstr(self.height - 2, self.x_pad + 12, str(len(self.grid)), curses.color_pair(6))
+        self.win.addstr(self.height - 3, self.x_pad + 12, str(self.current_gen), curses.color_pair(6))
         while self.state == 'stop':
             key = self.win.getch()
-            if key == ord('q'):
-                return
-            if key in [ord('s'),ord('r')]:
+            if key == ord('q'): return
+            if key in [ord('s'), ord('r')]:
                 self.state = 'run'
                 self.Start()
         return
