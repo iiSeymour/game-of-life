@@ -8,7 +8,7 @@ Any live cell with more than three live neighbours dies, as if by overcrowding.
 Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 """
 
-__TESTING__ = False
+__TESTING__ = True
 
 import os
 import copy
@@ -44,7 +44,7 @@ class gol(object):
             self.HUD = True
         self.y_grid = self.height - self.y_pad - self.hud_pad
         self.x_grid = self.width - self.x_pad
-        self.char = ['-', '+', '%', 'o']
+        self.char = ['-', '+', 'o', '%', '8','0']
         if args.n:
             self.initsize = args.n
         else:
@@ -52,7 +52,7 @@ class gol(object):
         self.rate = args.r
         self.current_gen = 0
         self.change_gen = [1, 2, 3]
-        self.color_max = 4
+        self.color_max = len(self.char)
         self.state = 'initial'
         self.win = curses.newwin(self.height, self.width, 0, 0)
         self.win.nodelay(1)
@@ -74,11 +74,12 @@ class gol(object):
         curses.curs_set(0)
         curses.start_color()
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_CYAN, curses.COLOR_BLACK)
-        curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK)
-        curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(6, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(5, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(7, curses.COLOR_RED, curses.COLOR_BLACK)
         return
 
     def Splash(self):
@@ -94,7 +95,7 @@ class gol(object):
 
         if self.x_grid > l_splash:
             for i, line in enumerate(splash):
-                self.win.addstr(y_splash + i, x_splash, line)
+                self.win.addstr(y_splash + i, x_splash, line, curses.color_pair(5))
         return
 
     def DrawHUD(self):
@@ -104,8 +105,8 @@ class gol(object):
         self.win.move(self.height - 2, self.x_pad)
         self.win.clrtoeol()
         self.win.box()
-        self.win.addstr(self.height - 2, self.x_pad, "Population: %i" % len(self.grid))
-        self.win.addstr(self.height - 3, self.x_pad, "Generation: %s" % self.current_gen)
+        self.win.addstr(self.height - 2, self.x_pad + 1, "Population: %i" % len(self.grid))
+        self.win.addstr(self.height - 3, self.x_pad + 1, "Generation: %s" % self.current_gen)
         self.win.addstr(self.height - 3, self.x_grid - 21, "s: start    p: pause")
         self.win.addstr(self.height - 2, self.x_grid - 21, "r: restart  q: quit")
         return
@@ -252,10 +253,12 @@ class gol(object):
         """
         Game Finished - Restart or Quit?
         """
-        self.win.move(self.height - 2, self.x_pad)
-        self.win.addstr(self.height - 2, self.x_grid/2 - 4, "GAMEOVER",curses.color_pair(5))
-        self.win.addstr(self.height - 2, self.x_pad + 12, str(len(self.grid)), curses.color_pair(6))
-        self.win.addstr(self.height - 3, self.x_pad + 12, str(self.current_gen), curses.color_pair(6))
+        self.current_gen = 0
+        self.win.addstr(self.height - 2, self.x_grid/2 - 4, "GAMEOVER", curses.color_pair(7))
+        if self.HUD:
+            self.win.addstr(self.height - 2, self.x_pad + 13, str(len(self.grid)), curses.color_pair(5))
+            self.win.addstr(self.height - 3, self.x_pad + 13, str(self.current_gen), curses.color_pair(5))
+
         while self.state == 'stop':
             key = self.win.getch()
             if key == ord('q'): return
