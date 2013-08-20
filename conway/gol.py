@@ -8,7 +8,7 @@ Any live cell with more than three live neighbours dies, as if by overcrowding.
 Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 """
 
-__TESTING__ = True
+__TESTING__ = False
 
 import os
 import copy
@@ -42,6 +42,7 @@ class gol(object):
             self.x_pad = 1
             self.hud_pad = 2
             self.HUD = True
+        self.traditional = args.t
         self.y_grid = self.height - self.y_pad - self.hud_pad
         self.x_grid = self.width - self.x_pad
         self.char = ['-', '+', 'o', '%', '8','0']
@@ -117,8 +118,10 @@ class gol(object):
         """
         for cell in self.grid.keys():
             y, x = cell
-            self.win.addch(y, x, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
-
+            if self.traditional:
+                self.win.addch(y, x, '.', curses.color_pair(4))
+            else:
+                self.win.addch(y, x, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
         self.win.refresh()
         return
 
@@ -175,7 +178,7 @@ class gol(object):
         Initialise the game with n random points
         """
         self.grid = {}
-        self.active = {}
+        self.active = []
 
         for _ in xrange(self.initsize):
             ry = random.randint(self.y_pad, self.y_grid - 1)
@@ -193,7 +196,7 @@ class gol(object):
         r_pentomino = [(10, 60), (9, 61), (10, 61), (11, 61), (9, 62)]
 
         self.grid = {}
-        self.active = {}
+        self.active = []
 
         for cell in chain(blinker, toad, glider, r_pentomino):
             self.grid[cell] = 1
@@ -215,12 +218,12 @@ class gol(object):
             self.DrawGrid()
             self.NextGen()
             sleep(self.rate)
-            # Have life evolved over 2 generations
+            # Has life evolved over 2 generations
             # Better stopping condition needed
             if self.change_gen[0] == self.change_gen[2]:
                 self.state = 'stop'
                 break
-            # Handle key presses
+            # Handle input
             key = self.win.getch()
             if key == ord('q'):
                 return
@@ -246,23 +249,25 @@ class gol(object):
         if __TESTING__: self.InitTest()
         else: self.InitRandom()
         self.win.clear()
-        self.current_gen = 0
+        self.current_gen = 1
+
+        if self.state == 'stop':
+            self.state = 'run'
+            self.Start()
+
         return
 
     def End(self):
         """
-        Game Finished - Restart or Quit?
+        Game Finished - Restart or Quit
         """
-        self.current_gen = 0
         self.win.addstr(self.height - 2, self.x_grid/2 - 4, "GAMEOVER", curses.color_pair(7))
         if self.HUD:
             self.win.addstr(self.height - 2, self.x_pad + 13, str(len(self.grid)), curses.color_pair(5))
             self.win.addstr(self.height - 3, self.x_pad + 13, str(self.current_gen), curses.color_pair(5))
-
         while self.state == 'stop':
             key = self.win.getch()
             if key == ord('q'): return
             if key in [ord('s'), ord('r')]:
-                self.state = 'run'
-                self.Start()
+                self.Restart()
         return
