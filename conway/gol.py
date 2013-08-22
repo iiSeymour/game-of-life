@@ -26,13 +26,13 @@ class gol(object):
         self.grid = {}
         self.active = []
         max_h, max_w = self.screen.getmaxyx()
-        if args.f:
+        if args.fullscreen:
             self.height = max_h
             self.width = max_w
         else:
             self.height = min(24, max_h)
             self.width = min(80, max_w)
-        if args.x:
+        if args.no_hud:
             self.y_pad = 0
             self.x_pad = 0
             self.hud_pad = 0
@@ -40,11 +40,11 @@ class gol(object):
         else:
             self.y_pad = 1
             self.x_pad = 1
-            self.hud_pad = 2
+            self.hud_pad = 3
             self.HUD = True
-        self.traditional = args.t
+        self.traditional = args.traditional
         self.y_grid = self.height - self.y_pad - self.hud_pad
-        self.x_grid = self.width - self.x_pad
+        self.x_grid = self.width - self.x_pad - 1
         self.char = ['-', '+', 'o', '%', '8','0']
         if args.n:
             self.initsize = args.n
@@ -118,21 +118,15 @@ class gol(object):
         """
         for cell in self.grid.keys():
             y, x = cell
+            y += self.y_pad
+            x += self.x_pad
+
             if self.traditional:
                 self.win.addch(y, x, '.', curses.color_pair(4))
             else:
                 self.win.addch(y, x, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
         self.win.refresh()
         return
-
-    def inGrid(self, cell):
-        """
-        Are we within the grid boundary
-        """
-        y, x = cell
-        if (x < self.x_grid and x >= self.x_pad and y < self.y_grid and y >= self.y_pad):
-            return True
-        return False
 
     def NextGen(self):
         """
@@ -145,17 +139,25 @@ class gol(object):
 
         for cell in self.active:
             y, x = cell
+            y1 = (y - 1) % self.y_grid
+            y2 = (y + 1) % self.y_grid
+            x1 = (x - 1) % self.x_grid
+            x2 = (x + 1) % self.x_grid
             n = self.CountNeighbours(cell)
 
             if n < 2 or n > 3:
                 del grid_cp[cell]
-                self.win.addch(y, x, ' ')
+                self.win.addch(y + self.y_pad, x + self.x_pad, ' ')
             else:
                 grid_cp[cell] = min(self.grid[cell] + 1, self.color_max)
 
-            for neighbour in product([y - 1, y, y + 1], [x - 1, x, x + 1]):
-                if neighbour not in self.active and self.inGrid(neighbour):
+            for neighbour in product([y1, y, y2], [x1, x, x2]):
+                if neighbour not in self.active:
                     if self.CountNeighbours(neighbour) == 3:
+                        y, x = neighbour
+                        y = y % self.y_grid
+                        x = x % self.x_grid
+                        neighbour = y, x
                         grid_cp[neighbour] = 1
 
         self.grid = grid_cp
@@ -167,8 +169,15 @@ class gol(object):
         """
         count = 0
         y, x = cell
+        y = y % self.y_grid
+        x = x % self.x_grid
+        y1 = (y - 1) % self.y_grid
+        y2 = (y + 1) % self.y_grid
+        x1 = (x - 1) % self.x_grid
+        x2 = (x + 1) % self.x_grid
+        cell = y, x
 
-        for neighbour in product([y - 1, y, y + 1], [x - 1, x, x + 1]):
+        for neighbour in product([y1, y, y2], [x1, x, x2]):
             if neighbour in self.active and neighbour != cell:
                 count += 1
         return count
@@ -190,13 +199,13 @@ class gol(object):
         """
         Initialise the game with a predefined set up where the behaviour is deterministic
         """
+        self.grid = {}
+        self.active = []
+
         blinker = [(4, 4), (4, 5), (4, 6)]
         toad = [(9, 5), (9, 6), (9, 7), (10, 4), (10, 5), (10, 6)]
         glider = [(4, 11), (5, 12), (6, 10), (6, 11), (6, 12)]
         r_pentomino = [(10, 60), (9, 61), (10, 61), (11, 61), (9, 62)]
-
-        self.grid = {}
-        self.active = []
 
         for cell in chain(blinker, toad, glider, r_pentomino):
             self.grid[cell] = 1
@@ -211,9 +220,6 @@ class gol(object):
         self.win.clear()
 
         while self.state == 'run':
-            if __TESTING__ and self.current_gen == 100:
-                self.state = 'stop'
-                break
             if self.HUD: self.DrawHUD()
             self.DrawGrid()
             self.NextGen()
@@ -223,7 +229,6 @@ class gol(object):
             if self.change_gen[0] == self.change_gen[2]:
                 self.state = 'stop'
                 break
-            # Handle input
             key = self.win.getch()
             if key == ord('q'):
                 return

@@ -16,9 +16,14 @@ def main(args):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f", action="store_true", default=False, help="Display fullscreen grid")
-    parser.add_argument("-x", action="store_true", default=False, help="Don't display HUD")
-    parser.add_argument("-t", action="store_true", default=False, help="Traditional mode (fast)")
-    parser.add_argument("-r", default=0.02, type=float, help="Set the refresh rate")
-    parser.add_argument("-n", type=int, help="Set the number of initial points")
+    parser.add_argument("-f", "--fullscreen", action="store_true",
+                        default=False, help="display fullscreen grid")
+    parser.add_argument("-x", "--no_hud", action="store_true",
+                        default=False, help="don't display HUD")
+    parser.add_argument("-t", "--traditional", action="store_true",
+                        default=False, help="traditional mode")
+    parser.add_argument("-r", default=0.02, type=float, metavar="refresh_rate",
+                        help="set the refresh rate")
+    parser.add_argument("-n", type=int, metavar="initial_points",
+                        help="set the number of initial points")
     main(parser.parse_args())
