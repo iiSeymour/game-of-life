@@ -1,10 +1,11 @@
-game-of-life
+Game Of Life
 ============
 
-A python implementation of [Conway's Game of Life](http://en.wikipedia.org/wiki/Conway's_Game_of_Life) using the curses module.
+A python implementation of [Conway's Game of Life](http://en.wikipedia.org/wiki/Conway's_Game_of_Life) using the curses module with a small evolutionary twist.
 
-    $ ./gol --help
-    usage: gol [-h] [-f] [-x] [-t] [-r refresh_rate] [-n initial_points]
+```shell
+$ gol --help
+  usage: gol [-h] [-f] [-x] [-t] [-r refresh_rate] [-n initial_points]
 
     optional arguments:
     -h, --help         show this help message and exit
@@ -13,6 +14,24 @@ A python implementation of [Conway's Game of Life](http://en.wikipedia.org/wiki/
     -t, --traditional  traditional mode
     -r refresh_rate    set the refresh rate
     -n initial_points  set the number of initial points
+```
+
+Installation
+============
+
+From pypi:
+
+```shell
+$ pip install gol
+```
+
+From source:
+
+```shell
+$ git clone https://github.com/iiSeymour/game-of-life
+$ cd game-of-life
+$ sudo python setup.py install
+```
 
 Screenshot
 ==========

@@ -1,25 +1,28 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 """
+Python curses implementation of Conway's Game Of Life with an evolutionary twist.
+
 Any live cell with fewer than two live neighbours dies, as if caused by under-population.
-
 Any live cell with two or three live neighbours lives on to the next generation.
-
 Any live cell with more than three live neighbours dies, as if by overcrowding.
-
 Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 """
-
-__TESTING__ = False
 
 import os
 import copy
 import curses
 import random
+import argparse
 from time import sleep
 from itertools import chain, product
+
 
 class gol(object):
 
     def __init__(self, args):
+        self.test = args.test
         self.screen = curses.initscr()
         self.screen.keypad(1)
         self.initCurses()
@@ -45,7 +48,7 @@ class gol(object):
         self.traditional = args.traditional
         self.y_grid = self.height - self.y_pad - self.hud_pad
         self.x_grid = self.width - self.x_pad - 1
-        self.char = ['-', '+', 'o', '%', '8','0']
+        self.char = ['-', '+', 'o', '%', '8', '0']
         if args.n:
             self.initsize = args.n
         else:
@@ -60,11 +63,13 @@ class gol(object):
         self.Splash()
         if self.HUD: self.DrawHUD()
 
+
     def __del__(self):
         self.win.clear()
         self.win.refresh()
         curses.echo()
         curses.endwin()
+
 
     def initCurses(self):
         """
@@ -81,14 +86,14 @@ class gol(object):
         curses.init_pair(5, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(6, curses.COLOR_BLUE, curses.COLOR_BLACK)
         curses.init_pair(7, curses.COLOR_RED, curses.COLOR_BLACK)
-        return
+
 
     def Splash(self):
         """
         Draw splash screen
         """
         dirname = os.path.split(os.path.abspath(__file__))[0]
-        splash = open(os.path.join(dirname,"splash"), "r").readlines()
+        splash = open(os.path.join(dirname, "splash"), "r").readlines()
 
         l_splash = len(max(splash, key=len))
         y_splash = int(self.y_grid/2) - len(splash)
@@ -97,7 +102,7 @@ class gol(object):
         if self.x_grid > l_splash:
             for i, line in enumerate(splash):
                 self.win.addstr(y_splash + i, x_splash, line, curses.color_pair(5))
-        return
+
 
     def DrawHUD(self):
         """
@@ -110,7 +115,7 @@ class gol(object):
         self.win.addstr(self.height - 3, self.x_pad + 1, "Generation: %s" % self.current_gen)
         self.win.addstr(self.height - 3, self.x_grid - 21, "s: start    p: pause")
         self.win.addstr(self.height - 2, self.x_grid - 21, "r: restart  q: quit")
-        return
+
 
     def DrawGrid(self):
         """
@@ -126,7 +131,7 @@ class gol(object):
             else:
                 self.win.addch(y, x, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
         self.win.refresh()
-        return
+
 
     def NextGen(self):
         """
@@ -161,7 +166,7 @@ class gol(object):
                         grid_cp[neighbour] = 1
 
         self.grid = grid_cp
-        return
+
 
     def CountNeighbours(self, cell):
         """
@@ -193,7 +198,7 @@ class gol(object):
             ry = random.randint(self.y_pad, self.y_grid - 1)
             rx = random.randint(self.x_pad, self.x_grid - 1)
             self.grid[(ry, rx)] = 1
-        return
+
 
     def InitTest(self):
         """
@@ -209,13 +214,13 @@ class gol(object):
 
         for cell in chain(blinker, toad, glider, r_pentomino):
             self.grid[cell] = 1
-        return
+
 
     def Start(self):
         """
         Game logic
         """
-        if __TESTING__: self.InitTest()
+        if self.test: self.InitTest()
         else: self.InitRandom()
         self.win.clear()
 
@@ -245,13 +250,13 @@ class gol(object):
                     if key in [ord('s'), ord('p')]:
                         self.state = 'run'
         self.End()
-        return
+
 
     def Restart(self):
         """
         Restart the game from a new generation 0
         """
-        if __TESTING__: self.InitTest()
+        if self.test: self.InitTest()
         else: self.InitRandom()
         self.win.clear()
         self.current_gen = 1
@@ -260,7 +265,6 @@ class gol(object):
             self.state = 'run'
             self.Start()
 
-        return
 
     def End(self):
         """
@@ -275,4 +279,29 @@ class gol(object):
             if key == ord('q'): return
             if key in [ord('s'), ord('r')]:
                 self.Restart()
-        return
+
+
+def main():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--fullscreen", action="store_true", default=False, help="display fullscreen grid")
+    parser.add_argument("-n", type=int, metavar="initial_points", help="set the number of initial points")
+    parser.add_argument("-r", default=0.02, type=float, metavar="refresh_rate", help="set the refresh rate")
+    parser.add_argument("-t", "--traditional", action="store_true", default=False, help="traditional mode")
+    parser.add_argument("-x", "--no_hud", action="store_true", default=False, help="don't display HUD")
+    parser.add_argument('--test', action="store_true", default=False, help=argparse.SUPPRESS)
+
+    game = gol(parser.parse_args())
+
+    while game.state == 'initial':
+        key = game.win.getch()
+        if key in [ord('s'), ord('r')]:
+            game.state = 'run'
+        if key == ord('q'):
+            return
+
+    game.Start()
+
+
+if __name__ == "__main__":
+    main()
