@@ -19,14 +19,6 @@ $ gol --help
 Installation
 ============
 
-From pypi:
-
-```shell
-$ pip install gol
-```
-
-From source:
-
 ```shell
 $ git clone https://github.com/iiSeymour/game-of-life
 $ cd game-of-life
