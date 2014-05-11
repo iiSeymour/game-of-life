@@ -19,6 +19,14 @@ $ gol --help
 Installation
 ============
 
+With pip:
+
+```
+$ sudo pip install gol
+```
+
+From github:
+
 ```shell
 $ git clone https://github.com/iiSeymour/game-of-life
 $ cd game-of-life

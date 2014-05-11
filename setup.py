@@ -12,17 +12,16 @@ AUTHOR_EMAIL = "chris.j.seymour@hotmail.com"
 AUTHOR_TWITTER = "@iiSeymour"
 URL = "https://github.com/iiSeymour/game-of-life"
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
 setup(
     name=NAME,
-    version=0.7,
+    version=0.76,
     description=DESCRIPTION,
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
-    license=read("LICENSE"),
+    license="MIT",
     url=URL,
+    packages=['conway'],
+    include_package_data=True,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console :: Curses",

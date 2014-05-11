@@ -93,7 +93,10 @@ class gol(object):
         Draw splash screen
         """
         dirname = os.path.split(os.path.abspath(__file__))[0]
-        splash = open(os.path.join(dirname, "splash"), "r").readlines()
+        try:
+            splash = open(os.path.join(dirname, "splash"), "r").readlines()
+        except IOError:
+            return
 
         l_splash = len(max(splash, key=len))
         y_splash = int(self.y_grid/2) - len(splash)
