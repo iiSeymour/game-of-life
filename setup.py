@@ -14,7 +14,7 @@ URL = "https://github.com/iiSeymour/game-of-life"
 
 setup(
     name=NAME,
-    version=0.76,
+    version=0.77,
     description=DESCRIPTION,
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
