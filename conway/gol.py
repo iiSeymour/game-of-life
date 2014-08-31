@@ -125,7 +125,8 @@ class gol(object):
         """
         Redraw the grid with the new generation
         """
-        for cell in self.grid.keys():
+        self.active = list(self.grid.keys())
+        for cell in self.active:
             y, x = cell
             y += self.y_pad
             x += self.x_pad
@@ -144,7 +145,7 @@ class gol(object):
         self.current_gen += 1
         self.change_gen[self.current_gen % 3] = copy.copy(self.grid)
         grid_cp = copy.copy(self.grid)
-        self.active = self.grid.keys()
+        self.active = list(self.grid.keys())
 
         for cell in self.active:
             y, x = cell
@@ -198,7 +199,7 @@ class gol(object):
         self.grid = {}
         self.active = []
 
-        for _ in xrange(self.initsize):
+        for _ in range(self.initsize):
             ry = random.randint(self.y_pad, self.y_grid - 1)
             rx = random.randint(self.x_pad, self.x_grid - 1)
             self.grid[(ry, rx)] = 1
