@@ -11,6 +11,7 @@ Any dead cell with exactly three live neighbours becomes a live cell, as if by r
 """
 
 import os
+import sys
 import copy
 import curses
 import random
@@ -60,6 +61,7 @@ class gol(object):
         self.state = 'initial'
         self.win = curses.newwin(self.height, self.width, 0, 0)
         self.win.nodelay(1)
+        self.patchCurses()
         self.Splash()
         if self.HUD: self.DrawHUD()
 
@@ -87,6 +89,16 @@ class gol(object):
         curses.init_pair(5, curses.COLOR_GREEN, -1)
         curses.init_pair(6, curses.COLOR_BLUE, -1)
         curses.init_pair(7, curses.COLOR_RED, -1)
+
+
+    def patchCurses(self):
+        """
+        Fix curses addch function for python 3.4.0
+        """
+        if sys.version_info.major == 3 and sys.version_info.minor == 4 and sys.version_info.micro == 0:
+            self.addchar = lambda y, x, *args: self.win.addch(x, y, *args)
+        else:
+            self.addchar = self.win.addch
 
 
     def Splash(self):
@@ -132,9 +144,9 @@ class gol(object):
             x += self.x_pad
 
             if self.traditional:
-                self.win.addch(y, x, '.', curses.color_pair(4))
+                self.addchar(y, x, '.', curses.color_pair(4))
             else:
-                self.win.addch(y, x, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
+                self.addchar(y, x, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
         self.win.refresh()
 
 
@@ -157,7 +169,7 @@ class gol(object):
 
             if n < 2 or n > 3:
                 del grid_cp[cell]
-                self.win.addch(y + self.y_pad, x + self.x_pad, ' ')
+                self.addchar(y + self.y_pad, x + self.x_pad, ' ')
             else:
                 grid_cp[cell] = min(self.grid[cell] + 1, self.color_max)
 
