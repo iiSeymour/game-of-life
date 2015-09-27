@@ -58,13 +58,16 @@ class gol(object):
         self.current_gen = 0
         self.change_gen = [1, 2, 3]
         self.color_max = len(self.char)
-        self.state = 'waiting'
         self.win = curses.newwin(self.height, self.width, 0, 0)
         self.win.nodelay(1)
         self.patchCurses()
         self.splash()
         if self.hud:
             self.drawHUD()
+        if not self.test:
+            self.state = 'waiting'
+        else:
+            self.start
 
     def __del__(self):
         self.win.clear()
@@ -226,6 +229,7 @@ class gol(object):
                 rx = random.randint(self.x_pad, self.x_grid - 1)
                 self.grid[(ry, rx)] = 1
 
+    @property
     def start(self):
         """
         Game logic
@@ -249,7 +253,7 @@ class gol(object):
             if key == ord('q'):
                 exit()
             if key == ord('r'):
-                self.restart()
+                self.restart
             if key in [ord('p'), ord('s')]:
                 self.state = 'paused'
                 while self.state == 'paused':
@@ -258,17 +262,19 @@ class gol(object):
                         exit()
                     if key == ord('r'):
                         self.state = 'running'
-                        self.restart()
+                        self.restart
                     if key in [ord('s'), ord('p')]:
                         self.state = 'running'
         self.end()
 
+    @property
     def waiting(self):
         """
         Returns true when waiting for user input
         """
         return self.state == 'waiting'
 
+    @property
     def restart(self):
         """
         Restart the game from a new generation 0
@@ -276,8 +282,9 @@ class gol(object):
         self.initGrid()
         self.win.clear()
         self.current_gen = 1
-        self.start()
+        self.start
 
+    @property
     def end(self):
         """
         Game Finished - Restart or Quit
@@ -295,7 +302,7 @@ class gol(object):
             if key == ord('q'):
                 exit()
             if key in [ord('s'), ord('r')]:
-                self.restart()
+                self.restart
 
 
 def main():
@@ -309,8 +316,6 @@ def main():
                         help="set the refresh rate")
     parser.add_argument("-t", "--traditional", action="store_true",
                         default=False, help="traditional mode")
-    parser.add_argument("-s", "--no-spash", action="store_true",
-                        default=False, help="don't display splash")
     parser.add_argument("-x", "--no-hud", action="store_true", default=False,
                         help="don't display HUD")
     parser.add_argument('--test', action="store_true", default=False,
@@ -318,10 +323,10 @@ def main():
 
     game = gol(parser.parse_args())
 
-    while game.waiting():
+    while game.waiting:
         key = game.win.getch()
         if key in [ord('s'), ord('r')]:
-            game.start()
+            game.start
         elif key == ord('q'):
             exit()
 
