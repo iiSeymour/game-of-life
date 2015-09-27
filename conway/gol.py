@@ -179,7 +179,7 @@ class gol(object):
                 grid_cp[cell] = min(self.grid[cell] + 1, self.color_max)
 
             for neighbour in product([y1, y, y2], [x1, x, x2]):
-                if neighbour not in self.active:
+                if not self.grid.get(neighbour):
                     if self.countNeighbours(neighbour) == 3:
                         y, x = neighbour
                         y = y % self.y_grid
@@ -204,7 +204,7 @@ class gol(object):
         cell = y, x
 
         for neighbour in product([y1, y, y2], [x1, x, x2]):
-            if neighbour in self.active and neighbour != cell:
+            if neighbour != cell and self.grid.get(neighbour):
                 count += 1
         return count
 
