@@ -5,15 +5,16 @@ A python implementation of [Conway's Game of Life](http://en.wikipedia.org/wiki/
 
 ```shell
 $ gol --help
-  usage: gol [-h] [-f] [-x] [-t] [-r refresh_rate] [-n initial_points]
+usage: gol [-h] [-f] [-n initial_points] [-r refresh_rate] [-t] [-x] [-v]
 
-    optional arguments:
-    -h, --help         show this help message and exit
-    -f, --fullscreen   display fullscreen grid
-    -x, --no_hud       don't display HUD
-    -t, --traditional  traditional mode
-    -r refresh_rate    set the refresh rate
-    -n initial_points  set the number of initial points
+optional arguments:
+  -h, --help         show this help message and exit
+  -f, --fullscreen   display fullscreen grid
+  -n initial_points  set the number of initial points
+  -r refresh_rate    set the refresh rate
+  -t, --traditional  traditional mode
+  -x, --no-hud       don't display HUD
+  -v, --version      show program's version number and exit
 ```
 
 Installation
