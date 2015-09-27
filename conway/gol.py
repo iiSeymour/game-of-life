@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-Python curses implementation of Conway's Game Of Life with an evolutionary twist.
+Curses implementation of Conway's Game Of Life with an evolutionary twist.
 
-Any live cell with fewer than two live neighbours dies, as if caused by under-population.
-Any live cell with two or three live neighbours lives on to the next generation.
-Any live cell with more than three live neighbours dies, as if by overcrowding.
-Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+Any live cell with fewer than two live neighbours dies.
+Any live cell with two or three live neighbours lives on.
+Any live cell with more than three live neighbours dies.
+Any dead cell with exactly three live neighbours becomes a live cell.
 """
 
 import os
@@ -40,12 +40,12 @@ class gol(object):
             self.y_pad = 0
             self.x_pad = 0
             self.hud_pad = 0
-            self.HUD = False
+            self.hud = False
         else:
             self.y_pad = 1
             self.x_pad = 1
             self.hud_pad = 3
-            self.HUD = True
+            self.hud = True
         self.traditional = args.traditional
         self.y_grid = self.height - self.y_pad - self.hud_pad
         self.x_grid = self.width - self.x_pad - 1
@@ -58,20 +58,19 @@ class gol(object):
         self.current_gen = 0
         self.change_gen = [1, 2, 3]
         self.color_max = len(self.char)
-        self.state = 'initial'
+        self.state = 'waiting'
         self.win = curses.newwin(self.height, self.width, 0, 0)
         self.win.nodelay(1)
         self.patchCurses()
-        self.Splash()
-        if self.HUD: self.DrawHUD()
-
+        self.splash()
+        if self.hud:
+            self.drawHUD()
 
     def __del__(self):
         self.win.clear()
         self.win.refresh()
         curses.echo()
         curses.endwin()
-
 
     def initCurses(self):
         """
@@ -90,18 +89,19 @@ class gol(object):
         curses.init_pair(6, curses.COLOR_BLUE, -1)
         curses.init_pair(7, curses.COLOR_RED, -1)
 
-
     def patchCurses(self):
         """
         Fix curses addch function for python 3.4.0
         """
-        if sys.version_info.major == 3 and sys.version_info.minor == 4 and sys.version_info.micro == 0:
+        if (sys.version_info)[:3] == (3, 4, 0):
             self.addchar = lambda y, x, *args: self.win.addch(x, y, *args)
         else:
             self.addchar = self.win.addch
 
+    def addstr(self, y, x, text, color=0):
+        self.win.addstr(self.height-y, x, str(text), curses.color_pair(color))
 
-    def Splash(self):
+    def splash(self):
         """
         Draw splash screen
         """
@@ -111,29 +111,27 @@ class gol(object):
         except IOError:
             return
 
-        l_splash = len(max(splash, key=len))
-        y_splash = int(self.y_grid/2) - len(splash)
-        x_splash = int(self.x_grid/2) - int(l_splash/2)
+        width = len(max(splash, key=len))
+        y = int(self.y_grid / 2) - len(splash)
+        x = int(self.x_grid / 2) - int(width / 2)
 
-        if self.x_grid > l_splash:
+        if self.x_grid > width:
             for i, line in enumerate(splash):
-                self.win.addstr(y_splash + i, x_splash, line, curses.color_pair(5))
+                self.win.addstr(y + i, x, line, curses.color_pair(5))
 
-
-    def DrawHUD(self):
+    def drawHUD(self):
         """
         Draw information on population size and current generation
         """
         self.win.move(self.height - 2, self.x_pad)
         self.win.clrtoeol()
         self.win.box()
-        self.win.addstr(self.height - 2, self.x_pad + 1, "Population: %i" % len(self.grid))
-        self.win.addstr(self.height - 3, self.x_pad + 1, "Generation: %s" % self.current_gen)
-        self.win.addstr(self.height - 3, self.x_grid - 21, "s: start    p: pause")
-        self.win.addstr(self.height - 2, self.x_grid - 21, "r: restart  q: quit")
+        self.addstr(2, self.x_pad + 1, "Population: %i" % len(self.grid))
+        self.addstr(3, self.x_pad + 1, "Generation: %s" % self.current_gen)
+        self.addstr(3, self.x_grid - 21, "s: start    p: pause")
+        self.addstr(2, self.x_grid - 21, "r: restart  q: quit")
 
-
-    def DrawGrid(self):
+    def drawGrid(self):
         """
         Redraw the grid with the new generation
         """
@@ -144,13 +142,17 @@ class gol(object):
             x += self.x_pad
 
             if self.traditional:
-                self.addchar(y, x, '.', curses.color_pair(4))
+                sprite = '.'
+                color = curses.color_pair(4)
             else:
-                self.addchar(y, x, self.char[self.grid[cell] - 1], curses.color_pair(self.grid[cell]))
+                sprite = self.char[self.grid[cell] - 1]
+                color = curses.color_pair(self.grid[cell])
+
+            self.addchar(y, x, sprite, color)
+
         self.win.refresh()
 
-
-    def NextGen(self):
+    def nextGen(self):
         """
         Decide the fate of the cells
         """
@@ -165,7 +167,7 @@ class gol(object):
             y2 = (y + 1) % self.y_grid
             x1 = (x - 1) % self.x_grid
             x2 = (x + 1) % self.x_grid
-            n = self.CountNeighbours(cell)
+            n = self.countNeighbours(cell)
 
             if n < 2 or n > 3:
                 del grid_cp[cell]
@@ -175,7 +177,7 @@ class gol(object):
 
             for neighbour in product([y1, y, y2], [x1, x, x2]):
                 if neighbour not in self.active:
-                    if self.CountNeighbours(neighbour) == 3:
+                    if self.countNeighbours(neighbour) == 3:
                         y, x = neighbour
                         y = y % self.y_grid
                         x = x % self.x_grid
@@ -184,8 +186,7 @@ class gol(object):
 
         self.grid = grid_cp
 
-
-    def CountNeighbours(self, cell):
+    def countNeighbours(self, cell):
         """
         Return the number active neighbours within one positions away from cell
         """
@@ -204,120 +205,125 @@ class gol(object):
                 count += 1
         return count
 
-    def InitRandom(self):
+    def initGrid(self):
         """
-        Initialise the game with n random points
+        Initialise the game grid
         """
-        self.grid = {}
-        self.active = []
-
-        for _ in range(self.initsize):
-            ry = random.randint(self.y_pad, self.y_grid - 1)
-            rx = random.randint(self.x_pad, self.x_grid - 1)
-            self.grid[(ry, rx)] = 1
-
-
-    def InitTest(self):
-        """
-        Initialise the game with a predefined set up where the behaviour is deterministic
-        """
-        self.grid = {}
-        self.active = []
-
         blinker = [(4, 4), (4, 5), (4, 6)]
         toad = [(9, 5), (9, 6), (9, 7), (10, 4), (10, 5), (10, 6)]
         glider = [(4, 11), (5, 12), (6, 10), (6, 11), (6, 12)]
         r_pentomino = [(10, 60), (9, 61), (10, 61), (11, 61), (9, 62)]
 
-        for cell in chain(blinker, toad, glider, r_pentomino):
-            self.grid[cell] = 1
+        self.grid = {}
+        self.active = []
 
+        if self.test:
+            for cell in chain(blinker, toad, glider, r_pentomino):
+                self.grid[cell] = 1
+        else:
+            for _ in range(self.initsize):
+                ry = random.randint(self.y_pad, self.y_grid - 1)
+                rx = random.randint(self.x_pad, self.x_grid - 1)
+                self.grid[(ry, rx)] = 1
 
-    def Start(self):
+    def start(self):
         """
         Game logic
         """
-        if self.test: self.InitTest()
-        else: self.InitRandom()
+        self.initGrid()
         self.win.clear()
+        self.state = 'running'
 
-        while self.state == 'run':
-            if self.HUD: self.DrawHUD()
-            self.DrawGrid()
-            self.NextGen()
+        while self.state == 'running':
+            if self.hud:
+                self.drawHUD()
+            self.drawGrid()
+            self.nextGen()
             sleep(self.rate)
             # Has life evolved over 2 generations
             # Better stopping condition needed
             if self.change_gen[0] == self.change_gen[2]:
-                self.state = 'stop'
+                self.state = 'stopped'
                 break
             key = self.win.getch()
             if key == ord('q'):
-                return
+                exit()
             if key == ord('r'):
-                self.Restart()
+                self.restart()
             if key in [ord('p'), ord('s')]:
-                self.state = 'pause'
-                while self.state == 'pause':
+                self.state = 'paused'
+                while self.state == 'paused':
                     key = self.win.getch()
-                    if key == ord('q'): return
+                    if key == ord('q'):
+                        exit()
                     if key == ord('r'):
-                        self.state = 'run'
-                        self.Restart()
+                        self.state = 'running'
+                        self.restart()
                     if key in [ord('s'), ord('p')]:
-                        self.state = 'run'
-        self.End()
+                        self.state = 'running'
+        self.end()
 
+    def waiting(self):
+        """
+        Returns true when waiting for user input
+        """
+        return self.state == 'waiting'
 
-    def Restart(self):
+    def restart(self):
         """
         Restart the game from a new generation 0
         """
-        if self.test: self.InitTest()
-        else: self.InitRandom()
+        self.initGrid()
         self.win.clear()
         self.current_gen = 1
+        self.start()
 
-        if self.state == 'stop':
-            self.state = 'run'
-            self.Start()
-
-
-    def End(self):
+    def end(self):
         """
         Game Finished - Restart or Quit
         """
-        self.win.addstr(self.height - 2, self.x_grid/2 - 4, "GAMEOVER", curses.color_pair(7))
-        if self.HUD:
-            self.win.addstr(self.height - 2, self.x_pad + 13, str(len(self.grid)), curses.color_pair(5))
-            self.win.addstr(self.height - 3, self.x_pad + 13, str(self.current_gen), curses.color_pair(5))
-        while self.state == 'stop':
+        self.addstr(2, self.x_grid / 2 - 4, "GAMEOVER", 7)
+
+        if self.hud:
+            self.addstr(2, self.x_pad + 13, len(self.grid), 5)
+            self.addstr(3, self.x_pad + 13, self.current_gen, 5)
+
+        if self.test:
+            exit()
+        while self.state == 'stopped':
             key = self.win.getch()
-            if key == ord('q'): return
+            if key == ord('q'):
+                exit()
             if key in [ord('s'), ord('r')]:
-                self.Restart()
+                self.restart()
 
 
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--fullscreen", action="store_true", default=False, help="display fullscreen grid")
-    parser.add_argument("-n", type=int, metavar="initial_points", help="set the number of initial points")
-    parser.add_argument("-r", default=0.02, type=float, metavar="refresh_rate", help="set the refresh rate")
-    parser.add_argument("-t", "--traditional", action="store_true", default=False, help="traditional mode")
-    parser.add_argument("-x", "--no_hud", action="store_true", default=False, help="don't display HUD")
-    parser.add_argument('--test', action="store_true", default=False, help=argparse.SUPPRESS)
+    parser.add_argument("-f", "--fullscreen", action="store_true",
+                        default=False, help="display fullscreen grid")
+    parser.add_argument("-n", type=int, metavar="initial_points",
+                        help="set the number of initial points")
+    parser.add_argument("-r", default=0.05, type=float, metavar="refresh_rate",
+                        help="set the refresh rate")
+    parser.add_argument("-t", "--traditional", action="store_true",
+                        default=False, help="traditional mode")
+    parser.add_argument("-s", "--no-spash", action="store_true",
+                        default=False, help="don't display splash")
+    parser.add_argument("-x", "--no-hud", action="store_true", default=False,
+                        help="don't display HUD")
+    parser.add_argument('--test', action="store_true", default=False,
+                        help=argparse.SUPPRESS)
 
     game = gol(parser.parse_args())
 
-    while game.state == 'initial':
+    while game.waiting():
         key = game.win.getch()
         if key in [ord('s'), ord('r')]:
-            game.state = 'run'
-        if key == ord('q'):
-            return
-
-    game.Start()
+            game.start()
+        elif key == ord('q'):
+            exit()
 
 
 if __name__ == "__main__":
