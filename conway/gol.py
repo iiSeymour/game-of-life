@@ -19,6 +19,9 @@ import argparse
 from time import sleep
 from itertools import chain, product
 
+__version_info__ = (1, 0, 0)
+__version__ = ".".join(map(str, __version_info__))
+
 
 class gol(object):
 
@@ -320,6 +323,8 @@ def main():
                         help="don't display HUD")
     parser.add_argument('--test', action="store_true", default=False,
                         help=argparse.SUPPRESS)
+    parser.add_argument('-v', '--version', action='version',
+                        version=__version__)
 
     game = gol(parser.parse_args())
 
