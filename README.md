@@ -3,7 +3,7 @@ Game Of Life
 
 A python implementation of [Conway's Game of Life](http://en.wikipedia.org/wiki/Conway's_Game_of_Life) using the curses module with a small evolutionary twist.
 
-```shell
+```
 $ gol --help
 usage: gol [-h] [-f] [-n initial_points] [-r refresh_rate] [-t] [-x] [-v]
 
