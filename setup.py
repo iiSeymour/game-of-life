@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 from setuptools import setup
+from conway.gol import __version__
 
 PACKAGE = "gol"
 NAME = "gol"
-DESCRIPTION = "Python curses implementation of Conway's Game Of Life with an evolutionary twist"
+DESCRIPTION = "Curses implementation of Conway's Game Of Life with an evolutionary twist"
 AUTHOR = "Chris Seymour"
 AUTHOR_EMAIL = "chris.j.seymour@hotmail.com"
 AUTHOR_TWITTER = "@iiSeymour"
@@ -14,7 +14,7 @@ URL = "https://github.com/iiSeymour/game-of-life"
 
 setup(
     name=NAME,
-    version=0.78,
+    version=__version__,
     description=DESCRIPTION,
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
