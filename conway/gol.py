@@ -31,7 +31,6 @@ class gol(object):
         self.screen.keypad(1)
         self.initCurses()
         self.grid = {}
-        self.active = []
         max_h, max_w = self.screen.getmaxyx()
         if args.fullscreen:
             self.height = max_h
@@ -141,8 +140,7 @@ class gol(object):
         """
         Redraw the grid with the new generation
         """
-        self.active = list(self.grid.keys())
-        for cell in self.active:
+        for cell in self.grid:
             y, x = cell
             y += self.y_pad
             x += self.x_pad
@@ -165,9 +163,8 @@ class gol(object):
         self.current_gen += 1
         self.change_gen[self.current_gen % 3] = copy.copy(self.grid)
         grid_cp = copy.copy(self.grid)
-        self.active = list(self.grid.keys())
 
-        for cell in self.active:
+        for cell in self.grid:
             y, x = cell
             y1 = (y - 1) % self.y_grid
             y2 = (y + 1) % self.y_grid
@@ -221,7 +218,6 @@ class gol(object):
         r_pentomino = [(10, 60), (9, 61), (10, 61), (11, 61), (9, 62)]
 
         self.grid = {}
-        self.active = []
 
         if self.test:
             for cell in chain(blinker, toad, glider, r_pentomino):
