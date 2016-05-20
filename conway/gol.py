@@ -19,7 +19,7 @@ import argparse
 from time import sleep
 from itertools import chain, product
 
-__version_info__ = (1, 0, 0)
+__version_info__ = (1, 0, 1)
 __version__ = ".".join(map(str, __version_info__))
 
 
@@ -66,7 +66,7 @@ class gol(object):
         self.splash()
         if self.hud:
             self.drawHUD()
-        if not self.test:
+        if not self.test and not args.autostart:
             self.state = 'waiting'
         else:
             self.start
@@ -307,6 +307,8 @@ class gol(object):
 def main():
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-a", "--autostart", action="store_true",
+                        default=False, help="skip the splash screen")
     parser.add_argument("-f", "--fullscreen", action="store_true",
                         default=False, help="display fullscreen grid")
     parser.add_argument("-n", type=int, metavar="initial_points",
