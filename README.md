@@ -5,11 +5,12 @@ A python implementation of [Conway's Game of Life](http://en.wikipedia.org/wiki/
 
 ```
 $ gol --help
-sage: gol.py [-h] [-a] [-f] [-n initial_points] [-r refresh_rate] [-t] [-x] [-v]
+usage: gol.py [-h] [-a] [-l] [-f] [-n initial_points] [-r refresh_rate] [-t] [-x] [-v]
 
 optional arguments:
   -h, --help         show this help message and exit
   -a, --autostart    skip the splash screen
+  -l, --loop         immediately restart game
   -f, --fullscreen   display fullscreen grid
   -n initial_points  set the number of initial points
   -r refresh_rate    set the refresh rate

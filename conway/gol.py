@@ -19,7 +19,7 @@ import argparse
 from time import sleep
 from itertools import chain, product
 
-__version_info__ = (1, 0, 1)
+__version_info__ = (1, 0, 2)
 __version__ = ".".join(map(str, __version_info__))
 
 
@@ -27,6 +27,7 @@ class gol(object):
 
     def __init__(self, args):
         self.test = args.test
+        self.loop = args.loop
         self.screen = curses.initscr()
         self.screen.keypad(1)
         self.initCurses()
@@ -288,6 +289,10 @@ class gol(object):
         """
         Game Finished - Restart or Quit
         """
+        if self.loop:
+            self.restart
+            return
+
         self.addstr(2, self.x_grid / 2 - 4, "GAMEOVER", 7)
 
         if self.hud:
@@ -309,6 +314,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--autostart", action="store_true",
                         default=False, help="skip the splash screen")
+    parser.add_argument("-l", "--loop", action="store_true",
+                        default=False, help="immediately restart game")
     parser.add_argument("-f", "--fullscreen", action="store_true",
                         default=False, help="display fullscreen grid")
     parser.add_argument("-n", type=int, metavar="initial_points",
