@@ -3,6 +3,9 @@ Game Of Life
 
 A python implementation of [Conway's Game of Life](http://en.wikipedia.org/wiki/Conway's_Game_of_Life) using the curses module with a small evolutionary twist.
 
+<p align="center">
+<img src="https://raw.github.com/iiSeymour/game-of-life/master/conway/gol.png"" alt="Game Of Life"/>
+</p>
 
 Installation
 ============
@@ -52,10 +55,3 @@ optional arguments:
   -x, --no-hud       don't display HUD
   -v, --version      show program's version number and exit
 ```
-
-Screenshot
-==========
-
-<p align="center">
-<img src="https://raw.github.com/iiSeymour/game-of-life/master/conway/gol.png"" alt="Game Of Life"/>
-</p>
