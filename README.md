@@ -13,7 +13,7 @@ Installation
 With pip:
 
 ```
-$ sudo pip install gol
+$ pip install --user gol
 ```
 
 From github:
